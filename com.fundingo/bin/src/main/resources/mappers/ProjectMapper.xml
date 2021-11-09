@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProjectMapper">
+
+	<resultMap id="projectSelectMap" type="project">
+		<id property="pjtNo" column="pjt_no" jdbcType="NUMERIC"/>
+		<result property="pjtName" column="pjt_name" jdbcType="VARCHAR"/>
+		<result property="thumbnail" column="thumbnail" jdbcType="VARCHAR"/>
+		<result property="startDate" column="start_date" jdbcType="DATE"/>
+		<result property="endDate" column="end_date" jdbcType="DATE"/>
+		<result property="sellerName" column="seller_name" jdbcType="VARCHAR"/>
+		<result property="sellerCI" column="seller_CI" jdbcType="VARCHAR"/>
+		<result property="sellerEmail" column="seller_email" jdbcType="VARCHAR"/>
+		<result property="bankName" column="bank_name" jdbcType="VARCHAR"/>
+		<result property="accountNo" column="account_no" jdbcType="VARCHAR"/>
+		<result property="sellerType" column="seller_type" jdbcType="CHAR"/>
+		<result property="pjtPlan" column="pjt_plan" jdbcType="VARCHAR"/>
+		<result property="category" column="category" jdbcType="CHAR"/>
+		<result property="pjtStatus" column="pjt_status" jdbcType="CHAR"/>
+		<result property="paymentPlan" column="payment_plan" jdbcType="CHAR"/>
+		<result property="pjtImg" column="pjt_img" jdbcType="VARCHAR"/>
+		<result property="totalFundCount" column="total_fund_count" jdbcType="NUMERIC"/>
+		<result property="collectedAmount" column="collected_amount" jdbcType="NUMERIC"/>
+		<result property="achievement" column = "achievement" jdbcType="NUMERIC"/>
+		<result property="policyImg" column="policy_img" jdbcType="VARCHAR"/>
+		<result property="targetAmount" column="target_amount" jdbcType="NUMERIC"/>
+		<result property="corporateName" column="corporate_name" jdbcType="VARCHAR"/>
+		<result property="businessLicenseNo" column="business_license_no" jdbcType="VARCHAR"/>
+		<result property="businessLicenseImg" column="business_license_img" jdbcType="VARCHAR"/>
+		<result property="accountImg" column="account_img" jdbcType="VARCHAR"/>
+		<result property="IDImg" column="id_img" jdbcType="VARCHAR"/>
+		<result property="videoURL" column="video_url" jdbcType="VARCHAR"/>
+		
+		<association property="user" javaType="user">
+			<id property="userNo" column="user_no" jdbcType="NUMERIC"/>
+			<result property="email" column="email" jdbcType="VARCHAR"/>
+			<result property="naver" column="naver" jdbcType="VARCHAR"/>
+			<result property="kakao" column="kakao" jdbcType="VARCHAR"/>
+			<result property="password" column="password" jdbcType="VARCHAR"/>
+			<result property="userName" column="user_name" jdbcType="VARCHAR"/>
+			<result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+			<result property="phone" column="phone" jdbcType="VARCHAR"/>
+			<result property="birthDate" column="birth_date" jdbcType="DATE"/>
+			<result property="gender" column="gender" jdbcType="CHAR"/>
+			<result property="profileImg" column="profile_img" jdbcType="VARCHAR"/>
+			<result property="subDate" column="sub_date" jdbcType="DATE"/>
+			<result property="badge" column="badge" jdbcType="CHAR"/>
+			<result property="userStatus" column="user_status" jdbcType="CHAR"/>
+		</association>
+		
+	</resultMap>
+	
+	<resultMap id="reviewSelectMap" type="review">
+		<id property="reviewNo" column="review_no" jdbcType="NUMERIC"/>
+		<result property="reviewContents" column="review_contents" jdbcType="VARCHAR"/>
+		<result property="reviewRegDate" column="review_reg_date" jdbcType="DATE"/>
+		<result property="reviewScore" column="review_score" jdbcType="NUMERIC"/>
+		<result property="reviewReplyRegDate" column="review_reply_reg_date" jdbcType="DATE"/>
+		<result property="reviewReplyContents" column="review_reply_contents" jdbcType="VARCHAR"/>
+		<result property="pjtNo" column="pjt_no" jdbcType="NUMERIC"/>
+		<result property="userNo" column="user_no" jdbcType="NUMERIC"/>
+		<result property="buyerNickname" column="nickname" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<resultMap id="chatSelectMap" type="chat">
+		<id property="chatNo" column="chat_no" jdbcType="VARCHAR"/>
+		<result property="chatTranTime" column="chat_tran_time" jdbcType="DATE"/>
+	</resultMap>
+	
+	<resultMap id="favoriteSelectMap" type="favorite">
+		<id property="favNo" column="fav_no" jdbcType="NUMERIC"/>
+		<result property="userNo" column="user_no" jdbcType="NUMERIC"/>
+		<result property="pjtNo" column="pjt_no" jdbcType="NUMERIC"/>
+	</resultMap>
+
+	<resultMap id="pjtImgSelectMap" type="pjtImg">
+		<id property="imgNo" column="img_no" jdbcType="NUMERIC"/>
+		<result property="type" column="type" jdbcType="CHAR"/>
+		<result property="pjtReportNo" column="pjt_report_no" jdbcType="NUMERIC"/>
+		<result property="pjtNoticeNo" column="pjt_notice_no" jdbcType="NUMERIC"/>
+		<result property="pjtReviewNo" column="pjt_review_no" jdbcType="NUMERIC"/>
+		<result property="img" column="img" jdbcType="VARCHAR"/>
+	</resultMap>
+
+	<resultMap id="productSelectMap" type="product">
+		<id property="prodNo" column="prod_no" jdbcType="NUMERIC"/>
+		<result property="pjtNo" column="pjtNo" jdbcType="NUMERIC"/>
+		<result property="prodName" column="prod_name" jdbcType="VARCHAR"/>
+		<result property="price" column="price" jdbcType="NUMERIC"/>
+		<result property="prodContents" column="prod_contents" jdbcType="VARCHAR"/>
+	</resultMap>
+
+
+
+
+	<select id="checkApply" parameterType="int" resultMap="projectSelectMap">
+		SELECT pjt_no, pjt_status
+		FROM project
+		<where>
+		user_no = #{value} AND pjt_status in ('00', '01', '02', '03')
+		</where>
+	</select>
+
+
+
+
+	<insert id="addPjt" parameterType="project" useGeneratedKeys="true" 
+			keyColumn="pjt_no" keyProperty="pjtNo">
+		INSERT INTO PROJECT (pjt_no, user_no, pjt_status)
+		VALUES (seq_pjt_pjt_no.nextval, #{user.userNo}, '00')
+	</insert>
+	
+	<update id="updatePjt" parameterType="map">
+		UPDATE project
+		<set>
+			<if test='type == "first"'>
+				seller_type = #{project.sellerType},
+				payment_plan = #{project.paymentPlan},
+				pjt_plan = #{project.pjtPlan}
+			</if>
+			<if test='type == "second"'>
+				seller_email = #{project.sellerEmail},
+				id_img = #{project.IDImg},
+				seller_name = #{project.sellerName},
+				seller_CI = #{project.sellerCI},
+				account_img = #{project.accountImg},
+				bank_name = #{project.bankName},
+				account_no = #{project.accountNo},
+				business_license_img = #{project.businessLicenseImg},
+				business_license_no = #{project.businessLicenseNo},
+				corporate_name = #{project.corporateName}
+			</if>
+			<if test='type == "third"'>
+				pjt_img = #{project.pjtImg},
+				policy_img = #{project.policyImg},
+				category = #{project.category},
+				start_date = #{project.startDate},
+				end_date = #{project.endDate},
+				pjt_name = #{project.pjtName},
+				target_amount = #{project.targetAmount},
+				thumbnail = #{project.thumbnail}
+			</if>
+			<if test='type == "fund"'>
+				total_fund_count = total_fund_count + #{project.totalFundCount},
+				collected_amount = collected_amount + #{project.collectedAmount}
+			</if>
+		</set>
+		<where>
+		pjt_no = #{project.pjtNo}
+		</where>
+	</update>
+	
+	<update id="updatePjtStatus" parameterType="project">
+		UPDATE PROJECT
+		SET pjt_status = #{pjtStatus}
+		WHERE pjt_no = #{pjtNo}
+	</update>
+	
+	<select id="getPjt" parameterType="int" resultMap="projectSelectMap"><!-- not necessary for users data for example users password. just practice -->
+		SELECT
+	      	pjt.pjt_no, pjt.pjt_name, pjt.thumbnail, pjt.start_date, pjt.end_date, pjt.seller_name, pjt.seller_ci, pjt.seller_email, pjt.bank_name, pjt.account_no, pjt.seller_type,
+	      	pjt.pjt_plan, pjt.category, pjt.pjt_status, pjt.payment_plan, pjt.pjt_img, pjt.policy_img, pjt.corporate_name, pjt.business_license_no, pjt.business_license_img, 
+	      	pjt.account_img, pjt.id_img, pjt.video_url, 
+	      	sum.collected_amount collected_amount, pjt.target_amount, sum.total_fund_count total_fund_count, ROUND((sum.collected_amount/pjt.target_amount)*100) achievement, 
+			u.user_no, u.email, u.nickname, u.badge, u.profile_img
+	      	FROM project pjt,  (SELECT prod.pjt_no, SUM(fp.prod_quantity*prod.price) AS collected_amount, SUM(fp.prod_quantity) AS total_fund_count
+	            		FROM funded_product fp, product prod
+	            		WHERE fp.prod_no = prod.prod_no
+	            		GROUP BY prod.pjt_no) sum, users u
+      	<where>
+      	pjt.pjt_no = sum.pjt_no(+) AND 
+      	pjt.user_no = u.user_no AND 
+      	pjt.pjt_no = #{value}
+      	</where>
+	</select>
+
+	
+	
+
+	<select id="getTotalFundCount" parameterType="int" resultType="int">
+		SELECT sum(prod_quantity)
+		FROM funded_product
+		WHERE prod_no in (SELECT product.prod_no 
+		                  FROM project, product 
+		                  WHERE product.pjt_no = project.pjt_no AND product.pjt_no in (#{value}))
+	</select>
+	
+	<select id="getCollectedAmount" parameterType="int" resultType="int">
+		SELECT sum(amount.each_fund_price)
+		FROM (SELECT fp.prod_quantity*prod.price as each_fund_price
+		    FROM funded_product fp, product prod
+		    <where>
+		    fp.prod_no = prod.prod_no 
+		    AND prod.prod_no in 
+						        (SELECT pd.prod_no 
+						         FROM project pj, product pd 
+						         <where>
+						         pj.pjt_no = pd.pjt_no AND pj.pjt_no = #{value}
+						         </where>)
+		    </where>) amount
+	</select>
+	
+		<select id="getPjtList" parameterType="map" resultMap="projectSelectMap">
+		SELECT * FROM( SELECT inner_table.*, ROWNUM AS row_seq
+						FROM ( SELECT
+								pjt.pjt_no, pjt.pjt_name, pjt.thumbnail, pjt.start_date, pjt.end_date, pjt.seller_name, pjt.seller_ci, pjt.seller_email, pjt.bank_name, pjt.account_no, pjt.seller_type,
+	      						pjt.pjt_plan, pjt.category, pjt.pjt_status, pjt.payment_plan, pjt.pjt_img, pjt.policy_img, pjt.corporate_name, pjt.business_license_no, pjt.business_license_img, 
+	      						pjt.account_img, pjt.id_img, pjt.video_url, 
+	      						sum.collected_amount collected_amount, pjt.target_amount, sum.total_fund_count total_fund_count, NVL(ROUND((sum.collected_amount/pjt.target_amount)*100), 0) AS achievement, 
+								u.user_no, u.email, u.nickname, u.badge, u.profile_img
+								FROM project pjt, users u, (SELECT prod.pjt_no, SUM(fp.prod_quantity*prod.price) AS collected_amount, SUM(fp.prod_quantity) AS total_fund_count
+			            		FROM funded_product fp, product prod
+			            		WHERE fp.prod_no = prod.prod_no
+			            		GROUP BY prod.pjt_no) sum		
+								WHERE 	pjt.pjt_no = sum.pjt_no(+) AND 
+      									pjt.user_no = u.user_no 
+
+									<if test='type == "banner"'><!-- 배너 @@ WHERE 85<=ROUND(collectedAmount/targetAmount)<95 
+ end_date ASC-->
+									AND  pjt.payment_plan = '1' AND ROUND((sum.collected_amount/pjt.target_amount)*100) BETWEEN 0 AND 95 AND pjt.pjt_status = '07'
+									ORDER BY pjt.end_date ASC
+									</if>
+									<if test="concernList != null">
+									<if test='type == "themeConcern"'>
+									AND pjt.payment_plan = '1' AND pjt.pjt_status = '07'
+									AND (pjt.category in (
+									<foreach collection="concernList" item="category" index="index" separator=",">
+									#{category}
+									</foreach>
+									) OR pjt.category is null)
+									</if>
+									</if>
+									<if test="concernList == null">
+									<if test='type == "themeConcern"'>
+									AND pjt.payment_plan = '1' AND pjt.pjt_status = '07'
+									AND pjt.category = 'none'
+									</if>
+									</if>
+									<if test='type == "themeSuccessIMI"'>
+									AND pjt.payment_plan = '1' AND pjt.pjt_status = '07' AND ROUND((sum.collected_amount/pjt.target_amount)*100) <![CDATA[<]]> 100
+									ORDER BY achievement DESC
+									</if>
+									<if test='type == "themeEndIMI"'>
+									AND pjt.payment_plan = '1' AND pjt.pjt_status = '07'
+									ORDER BY pjt.end_date ASC
+									</if>
+									<if test='type == "themeOpen"'>
+									AND pjt.payment_plan = '1' AND pjt.pjt_status= '06'
+									</if>
+									<if test='type == "list"'><!-- 상태별 분류 - 오픈예정, 진행중, 완료됨 -->
+										<if test='categoryList != null'>
+										AND (pjt.category in (
+										<foreach collection="categoryList" item="category" index="index" separator=",">
+										#{category}
+										</foreach>
+										) OR pjt.category is null)
+										AND
+										</if>
+											<if test="search.searchKeyword!=null"> 
+											pjt.pjt_name LIKE '%'||#{search.searchKeyword}||'%' AND
+											</if> 
+										(pjt.pjt_status in (
+										<foreach collection="statusList" item="status" index="index"  separator="," >
+										#{status}
+										</foreach>
+										) OR pjt.pjt_status is null)
+											<choose>
+												<when test='arrange == "arrangePopular"'>ORDER BY total_fund_count DESC NULLS LAST, pjt.start_date DESC</when>
+												<when test='arrange == "arrangeSuccessIMI"'>AND NVL(ROUND((sum.collected_amount/pjt.target_amount)*100),0) &lt; 100 ORDER BY achievement DESC, pjt.start_date DESC</when>
+												<when test='arrange == "arrangeEndIMI"'>ORDER BY pjt.end_date ASC, pjt.start_date DESC</when>
+												<when test='arrange == "arrangeRecent"'>ORDER BY pjt.start_date DESC</when>
+												<when test='arrange == "arrangeCollectedAmount"'>ORDER BY collected_amount DESC NULLS LAST, pjt.start_date DESC</when>
+												<otherwise>ORDER BY pjt.start_date DESC</otherwise>
+											</choose>											
+									</if>
+									 ) inner_table
+								WHERE ROWNUM <![CDATA[ <= ]]> #{search.endRowNum} )
+						WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum}
+	</select>
+	
+	<select id="getPjtListByUserNo" parameterType="int" resultMap="projectSelectMap">
+		SELECT
+			pjt.pjt_no, pjt.pjt_name, pjt.thumbnail, pjt.start_date, pjt.end_date, pjt.seller_name, pjt.seller_ci, pjt.seller_email, pjt.bank_name, pjt.account_no, pjt.seller_type,
+			pjt.pjt_plan, pjt.category, pjt.pjt_status, pjt.payment_plan, pjt.pjt_img, pjt.policy_img, pjt.corporate_name, pjt.business_license_no, pjt.business_license_img, 
+			pjt.account_img, pjt.id_img, pjt.video_url, 
+			sum.collected_amount collected_amount, pjt.target_amount, sum.total_fund_count total_fund_count, ROUND((sum.collected_amount/pjt.target_amount)*100) AS achievement, 
+			u.user_no, u.email, u.nickname, u.badge, u.profile_img
+			FROM project pjt, users u, (SELECT prod.pjt_no, SUM(fp.prod_quantity*prod.price) AS collected_amount, SUM(fp.prod_quantity) AS total_fund_count
+	   		FROM funded_product fp, product prod
+			<where>
+			fp.prod_no = prod.prod_no
+			</where>
+			GROUP BY prod.pjt_no) sum		
+			<where> 
+			pjt.pjt_no = sum.pjt_no(+) AND 
+      		pjt.user_no = u.user_no AND
+      		pjt.user_no = #{value}
+      		</where> 
+	</select>
+ 	
+	<select id="getProdList" parameterType="int" resultMap="productSelectMap">
+		SELECT prod_no, pjt_no, prod_name, price, prod_contents
+		FROM product
+		WHERE pjt_no = #{value}
+	</select>
+	
+	<insert id="addProduct" parameterType="product" useGeneratedKeys="true" 
+			keyColumn="prod_no" keyProperty="prodNo">
+		INSERT INTO product (prod_no, pjt_no)
+		VALUES (seq_product_prod_no.NEXTVAL, #{pjtNo})
+	</insert>
+	
+	<delete id="deleteProduct" parameterType="int">
+		DELETE FROM PRODUCT
+		WHERE prod_no = #{value}
+	</delete>
+	
+	<update id="updateProduct" parameterType="product">
+		UPDATE PRODUCT
+		<set>
+			price = #{price},
+			prod_name = #{prodName},
+			prod_contents = #{prodContents}
+		</set>
+		<where>
+		prod_no = #{prodNo}
+		</where>
+	</update>
+	
+	<delete id="deletePjt" parameterType="int">
+		DELETE FROM PROJECT
+		WHERE PJT_NO = #{value}
+	</delete>
+
+
+	<insert id="addFavorite" parameterType="favorite">
+		INSERT INTO favorite (fav_no, user_no, pjt_no)
+		VALUES (seq_favorite_fav_no.nextval, #{userNo}, #{pjtNo})
+	</insert>
+	
+	<select id="getFavorite" parameterType="favorite" resultMap="favoriteSelectMap">
+		SELECT * FROM favorite
+		WHERE user_no = #{userNo} AND pjt_no = #{pjtNo}
+	</select>
+	
+	<delete id="deleteFavorite" parameterType="favorite">
+		DELETE FROM favorite
+		WHERE user_no = #{userNo} AND pjt_no = #{pjtNo}
+	</delete>
+	
+	<select id="getFavoriteList" parameterType="int" resultMap="projectSelectMap">
+		SELECT 
+		p.pjt_no, p.pjt_name, p.thumbnail
+		FROM favorite f, project p
+		WHERE f.user_no = #{value} AND p.pjt_no = f.pjt_no
+	</select>
+	
+	<insert id="addReview" parameterType="review" useGeneratedKeys="true" 
+			keyColumn="review_no" keyProperty="reviewNo">
+		INSERT INTO review (review_no, pjt_no, user_no, review_contents, review_reg_date, review_score)
+		VALUES (seq_review_review_no.nextval, #{pjtNo}, #{userNo}, #{reviewContents}, SYSDATE, #{reviewScore})
+	</insert>
+	
+	
+	
+	<update id="updateReview" parameterType="map">
+		UPDATE review
+		<set>
+			<if test='type == "addReply"'>
+			review_reply_reg_date = SYSDATE,
+			review_reply_contents = #{review.reviewReplyContents}
+			</if>
+			
+			<if test='type == "editReview"'>
+			review_contents = #{review.reviewContents},
+			review_score = #{review.reviewScore}
+			</if>
+			
+			<if test='type == "editReply"'>
+			review_reply_contents=#{review.reviewReplyContents}		
+			</if>
+			
+			<if test='type == "deleteReply"'>
+			review_reply_reg_date = NULL,
+			review_reply_contents = NULL
+			</if>
+			<where>
+			review_no = #{review.reviewNo}
+			</where>
+		</set>
+	</update>
+	
+	<delete id="deleteReview" parameterType="int">
+		DELETE review
+		<where>
+		review_no = #{value}
+		</where>
+	</delete>
+	
+	<select id="getReviewList" parameterType="map" resultMap="reviewSelectMap">
+	
+	SELECT * FROM( SELECT inner_table.*, ROWNUM AS row_seq
+						FROM (
+		SELECT
+		rv.review_no, rv.pjt_no, rv.user_no, rv.review_contents, rv.review_reg_date, rv.review_score,
+		rv.review_reply_reg_date, rv.review_reply_contents, u.nickname
+		FROM review rv, users u
+		WHERE pjt_no = #{pjtNo} AND rv.user_no = u.user_no
+		ORDER BY review_reg_date DESC
+		) inner_table
+								WHERE ROWNUM <![CDATA[ <= ]]> #{search.endRowNum} )
+						WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum}
+		
+	</select>
+	
+	<select id="getReviewTotalCount" parameterType="int" resultType="int">
+		SELECT COUNT(review_no)
+		FROM review
+		WHERE pjt_no = #{value}
+	</select>
+	
+	
+	<insert id="addPjtReport" parameterType="pjtReport">
+		INSERT INTO pjt_report(pjt_report_no, pjt_report_user_no, pjt_report_pjt_no, pjt_report_type, pjt_report_contents)
+		VALUES (seq_pjt_report_pjt_report_no.nextval, #{pjtReportUserNo}, #{pjtReportPjtNo}, #{pjtReportType}, #{pjtReportContents})	
+	</insert>
+	
+	
+	<insert id="addChat" parameterType="chat">
+		INSERT INTO chat (chat_no)
+		VALUES (#{chatNo})
+	</insert>
+	
+	<select id="getChat" parameterType="string" resultMap="chatSelectMap">
+		SELECT chat_no, chat_tran_time
+		FROM chat
+		WHERE chat_no = #{value}
+	</select>
+	
+	<update id="updateChatTranTime" parameterType="chat">
+		UPDATE chat
+		<set>
+			chat_tran_time = #{chatTranTime}
+		</set>
+		<where>
+		chat_no = #{chatNo}
+		</where>
+	</update>
+	
+	<select id="getChatList" parameterType="int" resultMap="chatSelectMap">
+		SELECT
+		chat_no, chat_tran_time
+		FROM chat
+		<where>
+		chat_no LIKE '%'||#{value}
+		</where>
+	</select>
+	
+	<insert id="addPjtImg" parameterType="pjtImg">
+		
+		INSERT INTO pjt_img (img_no, type, img, 
+												<if test="type != null">	
+													<if test='type=="0"'>
+														pjt_report_no)
+													</if>
+													<if test='type=="1"'>
+														pjt_notice_no)
+													</if>
+													<if test='type=="2"'>
+														pjt_review_no)
+													</if>
+												</if>
+		VALUES (seq_pjt_img_img_no.nextval, #{type}, #{img},
+												<if test="type != null">
+												<if test='type=="0"'>
+												 #{pjtReportNo})
+												 </if>
+												 <if test='type=="1"'>
+												 #{pjtNoticeNo})
+												 </if>
+												 <if test='type=="2"'>
+												 #{pjtReviewNo})
+												 </if>
+												 </if>
+
+	</insert>
+	
+	<delete id="deletePjtImgOne" parameterType="int">
+		DELETE pjt_img
+		<where>
+		img_no = #{value}
+		</where>
+	</delete>
+	
+	<delete id="deletePjtImgAll" parameterType="pjtImg">
+		DELETE pjt_img
+		<where>
+			<if test='type=="0"'>
+			pjt_report_no = #{pjtReportNo}
+			</if>
+			<if test='type=="1"'>
+			pjt_notice_no = #{pjtNoticeNo}
+			</if>
+			<if test='type=="2"'>
+			pjt_review_no = #{pjtReviewNo}
+			</if>
+		</where>
+	</delete>
+	
+	<select id="getPjtImgList" parameterType="pjtImg" resultMap="pjtImgSelectMap">
+		SELECT
+		img_no, type, img, 
+		<if test='type=="0"'>
+		pjt_report_no
+		FROM pjt_img
+		<where>
+		pjt_report_no = #{pjtReportNo}
+		</where>
+		</if>
+		 
+		<if test='type=="1"'>
+		pjt_notice_no
+		FROM pjt_img
+		<where>
+		pjt_notice_no = #{pjtNoticeNo}
+		</where>
+		</if>
+		
+		<if test='type=="2"'>
+		pjt_review_no
+		FROM pjt_img
+		<where>
+		pjt_review_no = #{pjtReviewNo}
+		</where>
+		</if>
+		
+	</select>
+
+</mapper>

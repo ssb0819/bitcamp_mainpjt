@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProjectMapper02">
+ 	
+ 	
+	<resultMap id="projectNoticeSelectMap" type="pjtNotice">
+		<result property="pjtNoticeNo" 			column="pjt_notice_no" 			jdbcType="NUMERIC"/>
+		<result property="pjtNo"				column="pjt_no" 				jdbcType="NUMERIC" />
+		<result property="pjtNoticeTitle" 		column="pjt_notice_title" 		jdbcType="VARCHAR" />
+		<result property="pjtNoticeContents" 	column="pjt_notice_contents" 	jdbcType="VARCHAR" />
+		<result property="pjtNoticeDate" 		column="pjt_notice_date" 		jdbcType="DATE" />
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<!-- 프로젝트 내부 공지사항 등록 -->	 
+ 	<insert 	id="addPjtNotice"		parameterType="pjtNotice" >	 
+		INSERT
+		INTO pjt_notice (pjt_notice_no, pjt_no, pjt_notice_title, pjt_notice_contents, pjt_notice_date)
+		VALUES (seq_pjt_notice_pjt_notice_no.NEXTVAL, #{pjtNo}, #{pjtNoticeTitle}, #{pjtNoticeContents}, SYSDATE)
+	 </insert>
+
+	<!-- 프로젝트 내부 공지사항 이미지 등록 -->
+	<insert 	id="addPjtNoticeImg"		parameterType="pjtImg" >	
+		INSERT
+		INTO PJT_IMG (img_no, type, pjt_notice_no, img)
+		VALUES (seq_pjt_img_img_no.NEXTVAL, 0, #{pjtNoticeNo}, #{img})
+	 </insert>
+	 
+	<!-- SQL : SELECT LIST -->
+	<!-- 프로젝트 내부 공지사항 목록 조회 -->
+	<select  id="getPjtNoticeList"  parameterType="map"	resultMap="projectNoticeSelectMap">
+	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	SELECT pjt_notice_no, pjt_notice_title, pjt_notice_date
+										FROM pjt_notice
+										WHERE pjt_no = #{pjtNo}
+											<!--  <if test="searchCondition != null">
+												
+													<choose>
+													<when test="searchCondition == 0 and searchKeyword !='' ">
+										 				and pjt_notice_no LIKE '%${searchKeyword}%'
+													</when>
+													<when test="searchCondition == 1 and searchKeyword !='' ">
+										 				and pjt_notice_title LIKE '%${searchKeyword}%'
+													</when>
+													<when test="searchCondition == 2 and searchKeyword !='' ">
+										 				and pjt_notice_date LIKE '%${searchKeyword}%'
+													</when>
+													</choose>
+												
+											</if>
+											-->
+											ORDER BY pjt_notice_no ) inner_table
+						WHERE ROWNUM &lt;= #{search.endRowNum} )
+		WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum} 
+	 </select>	
+	 
+ 	<!-- SQL : SELECT ONE -->
+ 	<!-- 프로젝트 내부 공지사항 상세 조회 -->
+	 <select 	id="getPjtNotice"	parameterType="int"	resultMap="projectNoticeSelectMap">
+		SELECT pjt_notice_no, pjt_no, pjt_notice_title, pjt_notice_contents, pjt_notice_date
+		FROM pjt_notice
+		WHERE pjt_notice_no = #{value}
+		
+	 </select>
+	 
+	 <!-- 프로젝트 내부 공지사항 이미지 조회 -->
+	 <select 	id="getPjtNoticeImg" parameterType="int"	resultMap="projectNoticeSelectMap">
+		SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(SELECT img_no, img
+       								 FROM pjt_img, pjt_notice
+      								 WHERE type = 0 
+                                     AND pjt_notice.pjt_notice_no = pjt_img.pjt_notice_no
+      								 AND pjt_notice.pjt_notice_no = ${value} ) inner_table
+						WHERE ROWNUM &lt;= #{endRowNum} )
+		WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum} 
+	 </select>
+
+	<!-- SQL : UPDATE -->
+	<!-- 프로젝트 내부 공지사항 수정 -->
+	<update id="updatePjtNotice"	parameterType="pjtNotice">
+		UPDATE pjt_notice
+		SET pjt_notice_title = #{pjtNoticeTitle}, pjt_notice_contents = #{pjtNoticeContents}
+		WHERE pjt_no = #{pjtNo}
+	</update>
+	
+	<!-- 프로젝트 내부 공지사항 이미지 수정 -->
+	<update id="updatePjtImg"		parameterType="pjtimg">
+		UPDATE pjt_img
+		SET img_no = #{imgNo}, img = #{img}
+		WHERE pjt_notice_no = #{pjtNoticeNo} AND TYPE = 0
+	</update>
+	
+	<!-- 프로젝트 내부 공지사항 삭제 -->
+	<!-- SQL : DELETE -->
+	<delete id="deletePjtNotice"		parameterType="pjtNotice">
+		DELETE pjt_notice
+		WHERE pjt_notice_no = #{pjtNoticeNo}
+	</delete>
+	
+	<!-- 전체 게시물 수 -->
+	<select id="getTotalCount" parameterType="map" resultType="int">
+		SELECT
+		COUNT(*)   <!-- 뽑아낸 행들의 Count -->
+		FROM ( SELECT pjt_notice_no, pjt_notice_title, pjt_notice_date
+				FROM pjt_notice
+					<where>
+						pjt_no = #{pjtNo}
+						 <if test=" search.searchCondition != null">
+							<choose>
+								<when test=" search.searchCondition == 0 and search.searchKeyword != '' ">
+									AND pjt_notice_title like '%${search.searchKeyword}%' OR pjt_notice_contents like '%${search.searchKeyword}%'
+								</when>
+								<when test=" search.searchCondition == 1 and search.searchKeyword != '' ">
+									AND pjt_notice_title like '%${search.searchKeyword}%'
+								</when>
+								
+							</choose>
+						</if>
+					</where>
+				ORDER BY pjt_no) countTable
+	</select>
+	
+
+	
+
+
+</mapper>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CommunityMapper">
+ 	
+
+	<resultMap id="communitySelectMap" type="community">
+			<result property="postNo" 			column="post_no" 			jdbcType="NUMERIC"/>
+			<result property="boardType"		column="board_type" 		jdbcType="NUMERIC" />
+			<result property="postContents" 	column="post_contents" 		jdbcType="VARCHAR" />
+			<result property="postDate" 		column="post_date" 			jdbcType="DATE" />
+			<result property="noticeImg" 		column="notice_img" 		jdbcType="VARCHAR" />
+			<result property="postTitle" 		column="post_title" 		jdbcType="VARCHAR" />
+			<result property="replyNo" 			column="reply_no" 			jdbcType="NUMERIC" />
+			<result property="replyContents" 	column="reply_contents" 	jdbcType="VARCHAR"  />
+			<result property="replyDate" 		column="reply_date" 		jdbcType="DATE" />
+			<result property="userNo"			column="user_no"			jdbcType="NUMERIC"/> 
+		 	<result property="nickname" 		column="nickname" 			jdbcType="VARCHAR"/>
+		 	<result property="postHit"		 	column="post_hit" 			jdbcType="NUMERIC"/>
+	</resultMap>
+	
+	
+	<!-- 댓글목록 -->
+	<select id="replyList" parameterType="int" resultMap="communitySelectMap">
+		SELECT r.reply_no, r.reply_contents, r.user_no, r.reply_date, u.nickname
+		FROM community_reply r, community c, users u
+	 	WHERE c.post_no = r.post_no(+)
+	 	AND r.user_no = u.user_no 
+	 	AND c.post_no = #{value}
+		ORDER BY reply_no DESC
+	</select>
+
+
+	<!-- 댓글등록 -->
+	<insert id="addPostReply" parameterType="map">
+		INSERT INTO community_reply 
+		(reply_no, user_no, post_no, reply_contents, reply_date)
+		VALUES(seq_reply_no.nextval, #{userNo}, #{postNo}, #{replyContents}, SYSDATE) 		
+	</insert>
+
+	
+	 <!-- 댓글삭제 -->
+	 <delete id="deletePostReply" parameterType="int" >
+		DELETE
+		FROM community_reply
+		WHERE reply_no IN (#{value})
+	</delete>
+	
+	<!-- 목록 -->
+	<select id="getBoardList" parameterType="map" resultMap="communitySelectMap">
+		SELECT
+		*
+		FROM ( SELECT
+				inner_table.* , ROWNUM AS row_seq
+				FROM ( SELECT
+						c.post_no,
+						c.board_type,
+						c.user_no,
+						c.post_title,
+						c.post_date,
+						c.post_hit,
+						u.nickname
+						FROM community c, users u
+					<where>
+						c.user_no = u.user_no
+						AND c.board_type in (#{boardType})
+						<if test=" search.searchCondition != null">
+							<choose>
+								<when test=" search.searchCondition == 0 and search.searchKeyword != '' ">
+									AND post_title like '%${search.searchKeyword}%' OR post_contents like '%${search.searchKeyword}%'
+								</when>
+								<when test=" search.searchCondition == 1 and search.searchKeyword != '' ">
+									AND post_title like '%${search.searchKeyword}%'
+								</when>
+								<when test=" search.searchCondition == 2 and search.searchKeyword != '' ">
+									AND nickname like '%${search.searchKeyword}%'
+								</when>
+							</choose>
+						</if>
+					</where>
+				ORDER BY post_no DESC) inner_table
+			WHERE ROWNUM &lt;= #{search.endRowNum} )
+		WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum} 
+	</select>
+
+	
+	<!-- 상세보기 -->
+	<select id="getBoard" parameterType="int" resultMap="communitySelectMap">
+		SELECT c.post_no, c.user_no, c.board_type, c.post_contents, c.post_date, c.notice_img, c.post_title, u.nickname
+		FROM community c, users u
+	 	WHERE c.post_no = u.user_no(+)
+	 	AND c.post_no = #{value}
+	</select>
+
+	
+	<!-- 등록 -->
+	 <insert id="addBoard" parameterType="community">
+		INSERT INTO community 
+		(post_no, user_no, board_type, post_contents, post_date, notice_img, post_title)
+		VALUES (seq_community_post_no.nextval, #{userNo}, #{boardType}, #{postContents}, SYSDATE, #{noticeImg:VARCHAR}, #{postTitle}) 		
+	 </insert>
+	 <!-- NoticeImg에 noticeImg:VARCHAR 타입을 적어줘야 Controller에서 null을 반환해줄 때, 사용할 수 있다. -->
+
+	
+	 <!-- 삭제 -->
+	<delete id="deleteBoard" parameterType="int" >
+		DELETE
+		FROM community
+		WHERE post_no IN (#{postNo})
+	</delete>
+
+	
+	<!-- 수정 -->
+	<update id="updateBoard" parameterType="community">
+		UPDATE community
+		SET post_title = #{postTitle},
+			post_contents = #{postContents}
+		WHERE post_no IN (#{postNo})
+	</update>
+	
+	
+	<!-- 조회수 -->
+	<update id="postHit" parameterType="int">
+		UPDATE community
+		SET post_hit = post_hit+1
+		WHERE post_no = #{value}
+	</update>
+
+
+	<!-- 전체 게시물 수 -->
+	<select id="getTotalCount" parameterType="map" resultType="int">
+		SELECT
+		COUNT(*)   <!-- 뽑아낸 행들의 Count -->
+		FROM ( SELECT
+						c.post_no,
+						c.board_type,
+						c.user_no,
+						c.post_title,
+						c.post_date,
+						u.nickname
+				FROM community c, users u
+					<where>
+						c.user_no = u.user_no
+						AND c.board_type in (#{boardType})
+						<if test=" search.searchCondition != null">
+							<choose>
+								<when test=" search.searchCondition == 0 and search.searchKeyword != '' ">
+									AND post_title like '%${search.searchKeyword}%' OR post_contents like '%${search.searchKeyword}%'
+								</when>
+								<when test=" search.searchCondition == 1 and search.searchKeyword != '' ">
+									AND post_title like '%${search.searchKeyword}%'
+								</when>
+								<when test=" search.searchCondition == 2 and search.searchKeyword != '' ">
+									AND nickname like '%${search.searchKeyword}%'
+								</when>
+							</choose>
+						</if>
+					</where>
+				ORDER BY post_no) countTable
+	</select>
+
+</mapper>

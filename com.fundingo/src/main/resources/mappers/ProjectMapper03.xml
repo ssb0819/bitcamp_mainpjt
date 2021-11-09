@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<mapper namespace="ProjectMapper03">
+
+	<resultMap id="projectSelectMap" type="project">
+		<id property="pjtNo" column="pjt_no" jdbcType="NUMERIC"/>
+		<result property="pjtName" column="pjt_name" jdbcType="VARCHAR"/>
+		<result property="thumbnail" column="thumbnail" jdbcType="VARCHAR"/>
+		<result property="startDate" column="start_date" jdbcType="DATE"/>
+		<result property="endDate" column="end_date" jdbcType="DATE"/>
+		<result property="sellerName" column="seller_name" jdbcType="VARCHAR"/>
+		<result property="sellerCI" column="seller_CI" jdbcType="VARCHAR"/>
+		<result property="sellerEmail" column="seller_email" jdbcType="VARCHAR"/>
+		<result property="bankName" column="bank_name" jdbcType="VARCHAR"/>
+		<result property="accountNo" column="account_no" jdbcType="VARCHAR"/>
+		<result property="sellerType" column="seller_type" jdbcType="CHAR"/>
+		<result property="pjtPlan" column="pjt_plan" jdbcType="VARCHAR"/>
+		<result property="category" column="category" jdbcType="CHAR"/>
+		<result property="pjtStatus" column="pjt_status" jdbcType="CHAR"/>
+		<result property="paymentPlan" column="payment_plan" jdbcType="CHAR"/>
+		<result property="pjtImg" column="pjt_img" jdbcType="VARCHAR"/>
+		<result property="totalFundCount" column="total_fund_count" jdbcType="NUMERIC"/>
+		<result property="collectedAmount" column="collected_amount" jdbcType="NUMERIC"/>
+		<result property="policyImg" column="policy_img" jdbcType="VARCHAR"/>
+		<result property="targetAmount" column="target_amount" jdbcType="NUMERIC"/>
+		<result property="corporateName" column="corporate_name" jdbcType="VARCHAR"/>
+		<result property="businessLicenseNo" column="business_license_no" jdbcType="VARCHAR"/>
+		<result property="businessLicenseImg" column="business_license_img" jdbcType="VARCHAR"/>
+		<result property="accountImg" column="account_img" jdbcType="VARCHAR"/>
+		<result property="IDImg" column="id_img" jdbcType="VARCHAR"/>
+		<result property="videoURL" column="video_url" jdbcType="VARCHAR"/>
+		
+		<association property="user" javaType="user">
+			<id property="userNo" column="user_no" jdbcType="NUMERIC"/>
+			<result property="email" column="email" jdbcType="VARCHAR"/>
+			<result property="naver" column="naver" jdbcType="VARCHAR"/>
+			<result property="kakao" column="kakao" jdbcType="VARCHAR"/>
+			<result property="password" column="password" jdbcType="VARCHAR"/>
+			<result property="userName" column="user_name" jdbcType="VARCHAR"/>
+			<result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+			<result property="phone" column="phone" jdbcType="VARCHAR"/>
+			<result property="birthDate" column="birth_date" jdbcType="DATE"/>
+			<result property="gender" column="gender" jdbcType="CHAR"/>
+			<result property="profileImg" column="profile_img" jdbcType="VARCHAR"/>
+			<result property="subDate" column="sub_date" jdbcType="DATE"/>
+			<result property="badge" column="badge" jdbcType="CHAR"/>
+			<result property="userStatus" column="user_status" jdbcType="CHAR"/>
+		</association>		
+	</resultMap>
+	
+	<resultMap id="pjtReportSelectMap" type="pjtReport">
+		<id property="pjtReportNo" column="pjt_report_no" jdbcType="NUMERIC"/>
+		<result property="pjtReportPjtNo" column="pjt_report_user_no" jdbcType="NUMERIC"/>
+		<result property="pjtReportUserNo" column="pjt_report_pjt_no" jdbcType="NUMERIC"/>
+		<result property="pjtReportType" column="pjt_report_type" jdbcType="CHAR"/>
+		<result property="pjtReportContents" column="pjt_report_contents" jdbcType="VARCHAR"/>
+	</resultMap>
+
+	<resultMap id="pjtImgSelectMap" type="pjtImg">
+		<id property="imgNo" column="img_no" jdbcType="NUMERIC"/>
+		<result property="type" column="type" jdbcType="CHAR"/>
+		<result property="pjtReportNo" column="pjt_report_no" jdbcType="NUMERIC"/>
+		<result property="pjtNoticeNo" column="pjt_notice_no" jdbcType="NUMERIC"/>
+		<result property="pjtReviewNo" column="pjt_review_no" jdbcType="NUMERIC"/>
+		<result property="img" column="img" jdbcType="VARCHAR"/>
+	</resultMap>
+
+	
+	
+	<!-- 프로젝트 상세 수정 -->
+	<update id="updatePjtInfo" 	parameterType="project">
+		UPDATE project
+		<set>
+				pjt_img = #{pjtImg},
+				policy_img = #{policyImg},
+				video_url = #{videoURL},
+		</set>
+		<where>
+		pjt_no = #{project.pjtNo}
+		</where>
+	</update>
+	
+	<!-- 판매자 신청정보 수정 -->
+	<update id="updateSellerInfo" 	parameterType="project">
+		UPDATE project
+		<set>
+				seller_type = #{sellerType},
+				payment_plan = #{paymentPlan},
+				pjt_plan = #{pjtPlan}
+				seller_email = #{project.sellerEmail},
+				id_img = #{IDImg},
+				seller_name = #{sellerName},
+				seller_CI = #{sellerCI},
+				account_img = #{accountImg},
+				bank_name = #{bankName},
+				account_no = #{accountNo},
+				accont_name = #{accountName}
+				business_license_img = #{businessLicenseImg},
+				business_license_no = #{businessLicenseNo},
+				corporate_name = #{corporateName}
+				category = #{category},
+				start_date = #{startDate},
+				end_date = #{endDate},
+				pjt_name = #{pjtName},
+				target_amount = #{targetAmount}
+		</set>
+		<where>
+		pjt_no = #{pjtNo}
+		</where>
+	</update>
+	
+	<!-- 관리자용 프로젝트 목록 -->
+	<select id="getPjtListAdmin" parameterType="map" resultMap="projectSelectMap">
+		SELECT * FROM( SELECT inner_table.*, ROWNUM AS row_seq
+						FROM ( SELECT
+								pjt.pjt_no, pjt.pjt_name, pjt.category, pjt.pjt_status, pjt.payment_plan,
+	      						pjt.target_amount, u.user_no, u.nickname, pr.pjt_notice_count
+								FROM 	project pjt, 
+										users u, 
+										(SELECT pjt_no, COUNT(pjt_notice_no) AS pjt_notice_count
+											FROM pjt_notice
+											GROUP BY pjt_no) pr
+								WHERE 	pjt.user_no = u.user_no AND 
+      									pjt.pjt_no = pr.pjt_no(+)
+      									AND pjt.pjt_status != '00'
+      									<if test='category != null and category != "5"'>
+      										AND pjt.category = #{category}
+      									</if>	
+      									<if test='status != null and status != "13"'>
+      										AND pjt.pjt_status = #{status}
+      									</if>
+      									<if test="search.searchCondition != null">
+											<choose>
+												<when test="search.searchCondition == 0 and search.searchKeyword !='' ">
+										 			AND pjt.pjt_no LIKE '%'||#{search.searchKeyword}||'%' 
+												</when>											
+												<when test="search.searchCondition == 1 and search.searchKeyword !='' ">
+										 			AND u.nickname LIKE '%'||#{search.searchKeyword}||'%'
+												</when>
+											</choose>	
+										</if>
+      							<if test='sort == null or sort == "0"'>
+      								ORDER BY pjt.pjt_no DESC
+      							</if>	
+      							<if test='sort != null and sort == "1"'>
+      								ORDER BY pr.pjt_notice_count
+      							</if>
+      							<if test='sort != null and sort == "2"'>
+      								ORDER BY pr.pjt_notice_count DESC
+      							</if>								
+								) inner_table
+							WHERE ROWNUM <![CDATA[ <= ]]> #{search.endRowNum} )
+						WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum}
+	</select>
+	
+	<!-- 프로젝트 신고내역 조회 -->
+	<select id="getPjtReportList" parameterType="map" resultMap="pjtReportSelectMap">
+		SELECT *
+	  	FROM (SELECT inner_table.* , ROWNUM AS row_seq
+	  			FROM (SELECT  pjt_report_no, pjt_report_user_no, pjt_report_pjt_no, pjt_report_type, pjt_report_contents
+	  					FROM pjt_report
+	  					WHERE pjt_report_pjt_no = #{pjtNo}
+					  	ORDER BY pjt_report_no ) inner_table
+				WHERE ROWNUM &lt;= #{search.endRowNum} )
+		WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum}
+	</select>
+	
+	<!-- 프로젝트 전체 갯수 -->
+	<select id="getPjtTotalCount" parameterType="map" 	resultType="int">
+		SELECT  COUNT(pjt_no)
+	  	FROM project pjt, users u
+	  	<where>
+	  		pjt.user_no = u.user_no
+		  	<if test='category != null and category != "5"'>
+	      		AND pjt.category = #{category}
+	      	</if>	
+	      	<if test='status != null and status != "13"'>
+	      		AND pjt.pjt_status = #{status}
+	      	</if>
+	      	<if test="search.searchCondition != null and search.searchKeyword !='' ">
+			<choose>
+				<when test="search.searchCondition == 0 ">
+		 			AND pjt.pjt_no LIKE '%'||#{search.searchKeyword}||'%' 
+				</when>											
+				<when test="search.searchCondition == 1 ">
+		 			AND u.nickname LIKE '%'||#{search.searchKeyword}||'%'
+				</when>
+			</choose>	
+			</if>
+      	</where>
+	</select>
+		
+	<!-- 진행상태 갱신 필요한 프로젝트 리스트 -->
+	<select id="getPjtByStatus" parameterType="string" 	resultType="int">
+		SELECT  pjt_no
+	  	FROM project
+	  	<where>
+		  	pjt_status = #{pjtStatus}	      	
+	      	<if test='pjtStatus == "06"'>
+	      		AND start_date <![CDATA[ <= ]]> SYSDATE
+	      	</if>
+	      	<if test='pjtStatus == "07"'>
+	      		AND end_date <![CDATA[ <= ]]> SYSDATE
+	      	</if>
+      	</where>
+	</select>
+	
+	<!-- 프로젝트 신고상세 조회 -->
+	<select id="getPjtReport" parameterType="int" 	resultMap="pjtReportSelectMap">
+		SELECT  pjt_report_no, user_no, nickname, pjt_report_pjt_no, pjt_report_type, pjt_report_contents
+	  	FROM pjt_report, users
+	  	WHERE pjt_report_user_no = user_no AND pjt_report_pjt_no = #{value}
+	</select>
+	 
+	<!-- 프로젝트 신고 증빙자료 조회 -->
+	<select id="getPjtReportImg" parameterType="int" 	resultMap="pjtImgSelectMap">
+		SELECT img_no, img
+	  	FROM pjt_img
+	  	WHERE pjt_report_no = #{value}
+	</select>
+	
+</mapper>

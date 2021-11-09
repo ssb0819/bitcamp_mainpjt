@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="SalesMapper">
+
+   <resultMap id="couponSelectMap"    type="coupon">
+      <result property="couponNo"    	column="coupon_no" 		jdbcType="NUMERIC"/>
+      <result property="couponName"   	column="coupon_name" 	jdbcType="VARCHAR"/>
+      <result property="couponStart"    column="coupon_start" 	jdbcType="DATE"/>
+      <result property="couponEnd"   	column="coupon_end" 	jdbcType="DATE"/>
+      <result property="discountAmount" column="discount_amount" jdbcType="VARCHAR"/>
+      <result property="downNum"      	column="down_num" 		jdbcType="NUMERIC"/>
+      <result property="couponImg"    	column="coupon_img" 	jdbcType="VARCHAR"/>
+      <result property="couponCondition" column="coupon_condition" jdbcType="NUMERIC" />
+      <result property="downCount" 		column="down_count" 	jdbcType="NUMERIC" />
+      <result property="couponDownNo" 	column="c_down_no" 	jdbcType="NUMERIC" />
+   </resultMap>
+
+
+   <resultMap id="scheduleSelectMap"    type="schedule">
+      <result property="schNo"   	 column="sch_no" 		jdbcType="NUMERIC"/>
+      <result property="userNo"    	column="user_no" 		jdbcType="NUMERIC"/>
+      <result property="schTitle"    column="sch_title" 	jdbcType="VARCHAR"/>
+      <result property="schContents"    column="sch_contents" jdbcType="VARCHAR"/>
+      <result property="schStart"	 column="sch_start" 	jdbcType="DATE"/>
+      <result property="schEnd"       column="sch_end" 		jdbcType="DATE"/>
+      <result property="schRepeat"    column="sch_repeat" 	jdbcType="VARCHAR"/>
+      <result property="alarmTime" 	column="alarmtime" 		jdbcType="NUMERIC" />
+   </resultMap>
+   
+   
+   <resultMap id="fundingSelectMap" type="funding">
+		<result property="fundNo" 		column="fund_no" 		jdbcType="NUMERIC"/>
+		<result property="fundAmount"	column="fund_amount" 	jdbcType="NUMERIC" />
+		<result property="userNo" 		column="user_no" 		jdbcType="NUMERIC" />
+		<result property="fundDate" 	column="fund_date" 		jdbcType="DATE" />
+		<result property="deliveryFee" 	column="delivery_fee" 	jdbcType="NUMERIC" />
+		<result property="couponNo" 	column="coupon_no" 		jdbcType="NUMERIC" />
+		<result property="payMethod" 	column="pay_method" 	jdbcType="CHAR" />
+		<result property="addr" 		column="addr" 			jdbcType="VARCHAR"  />
+		<result property="postNo" 		column="post_no" 		jdbcType="CHAR" />
+		<result property="deliveryReq" 	column="delivery_req" 	jdbcType="VARCHAR" />
+		<result property="recipName" 	column="recip_name" 	jdbcType="VARCHAR" />
+		<result property="recipPhone" 	column="recip_phone" 	jdbcType="VARCHAR" />
+		<result property="purchaseStatus" 	column="purchase_status" 	jdbcType="CHAR"  />
+		<result property="deliveryStatus" 	column="delivery_status" 	jdbcType="CHAR" />
+		<result property="trackingNo" 		column="tracking_no" 		jdbcType="VARCHAR" />
+		<result property="deliveryCompany" 		column="dlvy_company" 		jdbcType="VARCHAR" />
+		<result property="project.category" column="category"	jdbcType="CHAR"/>
+		<result property="project.pjtName"	column="pjt_name"	jdbcType="VARCHAR"/>
+		<result property="project.pjtStatus" column="pjt_status" jdbcType="CHAR"/>
+		<result property="project.sellerName" column="seller_name" jdbcType="VARCHAR"/>
+		<result property="project.endDate" column="end_date" 		jdbcType="DATE"/>
+		<result property="project.pjtNo" column="pjt_no" 		jdbcType="NUMERIC"/>
+	</resultMap>
+
+	
+	<resultMap id="fundedProductSelectMap" type="FundedProduct">
+		<result property="fpNo" 			column="fp_no" 			jdbcType="NUMERIC"/>
+		<result property="fundNo"			column="fund_no" 		jdbcType="NUMERIC" />
+		<result property="prodNo" 			column="prod_no" 		jdbcType="NUMERIC" />		
+		<result property="prodQuantity" 	column="prod_quantity" 	jdbcType="NUMERIC" />
+		<result property="product.prodName"	column="prod_name"	 	jdbcType="VARCHAR"/>
+		<result property="product.price"	column="price"	 		jdbcType="NUMERIC"/><!-- 07/21 추가 -->		
+	</resultMap>
+   
+
+   <!-- 쿠폰생성 -->
+   <insert    id="addCoupon"      parameterType="coupon" >
+       INSERT INTO coupon(coupon_no, coupon_name, coupon_end, discount_amount,
+                       down_num ,coupon_condition) 
+      VALUES (seq_coupon_coupon_no.NEXTVAL, #{couponName},
+             TO_DATE(#{couponEnd},'YYYY-MM-DD HH24:MI:SS'), 
+             #{discountAmount}, #{downNum}, #{couponCondition})
+   </insert>
+   
+   <!-- 쿠폰상세 -->
+   <select    id="getCoupon"       parameterType="int"       resultMap="couponSelectMap">
+      SELECT coupon_no, coupon_name, TO_CHAR(coupon_end, 'YYYY-MM-DD HH24:MI:SS') coupon_end, 
+      		discount_amount, down_num, coupon_condition
+      FROM coupon
+      WHERE coupon_no = #{value}
+   </select>
+   
+   <!-- 쿠폰삭제 -->
+   <delete    id="deleteCoupon"    parameterType="int">
+      DELETE 
+      FROM coupon 
+      WHERE coupon_no = #{value}
+   </delete>
+
+   <!-- 쿠폰다운 -->
+   <insert    id="downCoupon"       parameterType="map">
+      INSERT INTO coupon_down(c_down_no, coupon_no, user_no, coupon_status)  
+		VALUES (seq_coupondown_c_down_no.NEXTVAL, #{couponNo}, #{userNo}, 0) 
+   </insert>
+   
+   <!-- 쿠폰다운이력조회 -->
+   <select    id="findCoupon"       parameterType="map"       resultType="Integer">
+		SELECT c_down_no 
+		FROM coupon_down
+		WHERE coupon_no = #{couponNo} AND user_no = #{userNo}
+   </select>
+
+   <!-- 전체쿠폰목록조회 -->
+   <select    id="getAllCouponList"    parameterType="search"   resultMap="couponSelectMap">
+   		SELECT * FROM( SELECT inner_table.*, ROWNUM AS row_seq
+						FROM ( SELECT c.coupon_no, c.coupon_name, c.coupon_end, c.discount_amount, c.coupon_condition, 
+										c.down_num, cd.down_count
+								FROM coupon c, (SELECT coupon_no, COUNT(c_down_no) down_count
+												FROM coupon_down
+												GROUP by coupon_no) cd
+								WHERE c.coupon_no = cd.coupon_no(+) AND c.coupon_end > SYSDATE
+								ORDER BY coupon_end ) inner_table
+						WHERE ROWNUM <![CDATA[ <= ]]> #{endRowNum} )
+					WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum}
+   </select>
+   
+   <!-- 내쿠폰목록조회 -->
+   <select    id="getMyCouponList"       parameterType="int"       resultMap="couponSelectMap">
+   		SELECT c.coupon_no, c.coupon_name, c.coupon_end, c.discount_amount, c.coupon_condition, cd.c_down_no 
+				FROM coupon c, coupon_down cd 
+				WHERE c.coupon_no = cd.coupon_no 
+						AND cd.user_no = #{userNo} 
+						AND cd.coupon_status = '0' 
+   </select>
+   
+   <!-- 쿠폰사용 -->
+   <update    id="useCoupon"      parameterType="int" >
+       UPDATE coupon_down 
+		SET coupon_status='1' 
+		WHERE c_down_no = #{value}
+   </update>
+   
+   <select 	id="getExpiredCouponList" resultType="int">
+   		SELECT coupon_no
+   		FROM coupon
+   		WHERE coupon_end <![CDATA[ <= ]]> SYSDATE
+   </select>
+   
+   <!-- 쿠폰만료 -->
+   <update    id="expireCoupon"      parameterType="int" >
+       UPDATE coupon_down 
+		SET coupon_status='2' 
+		WHERE coupon_no = #{value}
+   </update>      
+
+
+   <!-- 일정추가 -->
+   <insert    id="addSchedule"       parameterType="schedule" 
+   			useGeneratedKeys="true" keyColumn="sch_no" keyProperty="schNo">
+      INSERT INTO schedule(sch_no, user_no, sch_title, sch_contents, sch_start, sch_end, sch_repeat, alarmtime)  
+		VALUES (seq_schedule_sch_no.NEXTVAL, #{userNo}, #{schTitle}, #{schContents}, 
+					TO_DATE(#{schStart},'YYYY-MM-DD HH24:MI:SS'), TO_DATE(#{schEnd},'YYYY-MM-DD HH24:MI:SS'), 
+					#{schRepeat:VARCHAR}, #{alarmTime:NUMERIC}) 
+   </insert> 
+        
+   <!-- 일정수정 -->
+   <update    id="updateSchedule"       parameterType="schedule" >
+      UPDATE schedule 
+		SET    
+		sch_title = #{schTitle},  
+		sch_contents = #{schContents},  
+		sch_start = TO_DATE(#{schStart},'YYYY-MM-DD HH24:MI:SS'),  
+		sch_end = TO_DATE(#{schEnd},'YYYY-MM-DD HH24:MI:SS'),  
+		sch_repeat = #{schRepeat:VARCHAR},
+		alarmtime = #{alarmTime:NUMERIC}  
+		WHERE sch_no=#{schNo} 
+   </update> 
+
+  
+   <!-- 일정삭제 -->
+   <delete    id="deleteSchedule"    parameterType="int">
+      DELETE 
+      FROM schedule
+      WHERE sch_no = #{value}
+   </delete>
+
+
+   <!-- 일정상세 -->
+   <select    id="getSchedule"       parameterType="int"       resultMap="scheduleSelectMap">
+      	SELECT sch_no, user_no, sch_title, sch_contents, TO_CHAR(sch_start,'YYYY-MM-DD HH24:MI:SS') sch_start, TO_CHAR(sch_end,'YYYY-MM-DD HH24:MI:SS') sch_end, sch_repeat, alarmtime
+		FROM schedule
+		WHERE sch_no = #{value}
+   </select>
+
+
+   <!-- 일정목록조회 -->
+   <select    id="getScheduleList"       parameterType="schedule"       resultMap="scheduleSelectMap">
+      	SELECT sch_no, user_no, sch_title, sch_contents, TO_CHAR(sch_start,'YYYY-MM-DD HH24:MI:SS') sch_start, TO_CHAR(sch_end,'YYYY-MM-DD HH24:MI:SS') sch_end, sch_repeat, alarmtime
+		FROM schedule
+		WHERE user_no = #{userNo}
+   </select>
+ 
+
+   <!-- 판매수량차트조회 -->
+   <select    id="getChart"       parameterType="map"       resultMap="fundedProductSelectMap">
+		SELECT prod.prod_name prod_name, NVL(SUM(fp.prod_quantity), 0) prod_quantity
+		FROM funding f, funded_product fp, product prod
+		WHERE f.fund_no = fp.fund_no AND fp.prod_no = prod.prod_no AND prod.prod_no = ${prodNo} 
+		<choose>
+			<when test="type == 1"> <!-- 20대, 그 이하 여성 -->
+				AND ( u.birth_date > TO_DATE(TO_CHAR(SYSDATE,'yyyy')-28||'0101') ) AND u.gender = 'f'
+			</when>
+			<when test="type == 2"> <!-- 20대, 그 이하 남성 -->
+				AND ( u.birth_date > TO_DATE(TO_CHAR(SYSDATE,'yyyy')-28||'0101') ) AND u.gender = 'm'
+			</when>
+			<when test="type == 3"> <!-- 30대 여성 -->
+				AND ( u.birth_date BETWEEN TO_DATE(TO_CHAR(SYSDATE,'yyyy')-29||'0101') AND TO_DATE(TO_CHAR(SYSDATE,'yyyy')-38||'0101') ) AND u.gender = 'f'
+			</when>
+			<when test="type == 4"> <!-- 30대 남성 -->
+				AND ( u.birth_date BETWEEN TO_DATE(TO_CHAR(SYSDATE,'yyyy')-29||'0101') AND TO_DATE(TO_CHAR(SYSDATE,'yyyy')-38||'0101') ) AND u.gender = 'm'
+			</when>
+			<when test="type == 5"> <!-- 40대 여성 -->
+				AND ( u.birth_date BETWEEN TO_DATE(TO_CHAR(SYSDATE,'yyyy')-39||'0101') AND TO_DATE(TO_CHAR(SYSDATE,'yyyy')-48||'0101') ) AND u.gender = 'f'
+			</when>
+			<when test="type == 6"> <!-- 40대 남성 -->
+				AND ( u.birth_date BETWEEN TO_DATE(TO_CHAR(SYSDATE,'yyyy')-39||'0101') AND TO_DATE(TO_CHAR(SYSDATE,'yyyy')-48||'0101') ) AND u.gender = 'm'
+			</when>
+			<when test="type == 7"> <!-- 50대 여성 -->
+				AND ( u.birth_date <![CDATA[<]]> TO_DATE(TO_CHAR(SYSDATE,'yyyy')-49||'0101') ) AND u.gender = 'f'
+			</when>
+			<when test="type == 8"> <!-- 50대 남성 -->
+				AND ( u.birth_date <![CDATA[<]]> TO_DATE(TO_CHAR(SYSDATE,'yyyy')-49||'0101') ) AND u.gender = 'm'
+			</when>
+			<otherwise>
+				AND (f.fund_date <![CDATA[>=]]> #{start} AND f.fund_date <![CDATA[<]]> #{end})
+			</otherwise>			
+		</choose>
+			GROUP BY prod.prod_name
+   </select> 
+   
+   <!-- 결제목록조회  -->	
+	<select  id="getSaleList"  parameterType="map"	resultMap="fundingSelectMap">
+	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	SELECT
+            							project.pjt_no, project.category, project.pjt_status, project.pjt_name, funding.tracking_no,
+            							funding.fund_date, funding.purchase_status, funding.fund_no, funding.recip_name, funding.addr,
+            							funding.recip_phone, funding.delivery_status, funding.delivery_req, funding.dlvy_company
+           								FROM funding, project
+            							WHERE funding.pjt_no = project.pjt_no(+)
+            							<if test="sellerNo != null and sellerNo != 0">
+            								AND project.user_no = #{sellerNo}
+            							</if>
+										<if test="search.searchCondition != null">
+											<choose>
+												<when test="search.searchCondition == 0 and search.searchKeyword !='' ">
+										 			AND project.pjt_no LIKE '%${search.searchKeyword}%' 
+												</when>											
+												<when test="search.searchCondition == 1 and search.searchKeyword !='' ">
+										 			AND funding.fund_no LIKE '%${search.searchKeyword}%'
+												</when>
+											</choose>	
+										</if>										
+										ORDER BY funding.fund_no ) inner_table
+						WHERE ROWNUM &lt;= #{search.endRowNum} )
+		WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum} 
+	 </select>
+	 
+	<!-- 결제내역 갯수 -->
+	<select id="getSaleTotalCount" parameterType="map" resultType="int">
+	SELECT COUNT(fund_no)
+           FROM funding, project
+           WHERE funding.pjt_no = project.pjt_no(+)
+	        <if test="sellerNo != null and sellerNo != 0">
+	        	AND project.user_no = #{sellerNo}
+	        </if>
+			<if test="search.searchCondition != null">
+			<choose>
+				<when test="search.searchCondition == 0 and search.searchKeyword !='' ">
+		 			AND project.pjt_no LIKE '%${search.searchKeyword}%' 
+				</when>											
+				<when test="search.searchCondition == 1 and search.searchKeyword !='' ">
+		 			AND funding.fund_no LIKE '%${search.searchKeyword}%'
+				</when>
+			</choose>	
+			</if>	
+	</select>
+   
+   <!-- 배송상태 업데이트 -->
+   <update id="updateFundStatus" parameterType="funding">
+	   	UPDATE funding
+		SET delivery_status = #{deliveryStatus:CHAR},
+			dlvy_company = #{deliveryCompany:VARCHAR},
+			tracking_no = #{trackingNo:VARCHAR}
+		WHERE fund_no=#{fundNo}
+   </update>
+   
+
+</mapper>

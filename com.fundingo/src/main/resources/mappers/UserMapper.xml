@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserMapper">
+ 	
+	<resultMap id="userSelectMap" type="user">
+		<result property="userNo"				column="user_no"			jdbcType="NUMERIC"/>
+		<result property="email" 				column="email" 				jdbcType="VARCHAR"/>
+		<result property="naver" 				column="naver" 				jdbcType="VARCHAR"/>
+		<result property="kakao" 				column="kakao" 				jdbcType="VARCHAR"/>
+		<result property="password" 			column="password" 			jdbcType="VARCHAR"/>
+		<result property="userName" 			column="user_name" 			jdbcType="VARCHAR"/>
+		<result property="nickname" 			column="nickname" 			jdbcType="VARCHAR"/>
+		<result property="phone" 				column="phone" 				jdbcType="VARCHAR"/>
+		<result property="birthDate" 			column="birth_date" 		jdbcType="DATE"/>
+		<result property="gender"				column="gender"				jdbcType="CHAR"/>
+		<result property="profileImg"			column="profile_img"		jdbcType="VARCHAR"/>
+		<result property="subDate" 				column="sub_date" 			jdbcType="DATE"/>
+		<result property="badge" 				column="badge" 				jdbcType="CHAR"/>
+		<result property="concern1" 			column="concern1" 			jdbcType="VARCHAR"/>
+		<result property="concern2" 			column="concern2" 			jdbcType="VARCHAR"/>
+		<result property="concern3" 			column="concern3" 			jdbcType="VARCHAR"/>
+		<result property="concern4" 			column="concern4" 			jdbcType="VARCHAR"/>
+		<result property="concern5" 			column="concern5" 			jdbcType="VARCHAR"/>
+		<result property="userStatus" 			column="user_status" 		jdbcType="CHAR"/>
+		<result property="easypayCardNo" 		column="easypay_card_no" 	jdbcType="VARCHAR"/>
+		<result property="easypayCardValid" 	column="easypay_card_valid" jdbcType="VARCHAR"/>
+		<result property="easypayCardPwd" 		column="easypay_card_pwd" 	jdbcType="VARCHAR"/>
+		<result property="easypayPwd" 			column="easypay_pwd" 		jdbcType="VARCHAR"/>
+		<result property="addr" 				column="addr" 				jdbcType="VARCHAR"/>
+		<result property="postNo" 				column="post_no" 			jdbcType="CHAR"/>
+		<result property="recipName" 			column="recip_name" 		jdbcType="VARCHAR"/>
+		<result property="recipPhone" 			column="recip_phone" 		jdbcType="VARCHAR"/>
+		<result property="deliveryReq" 			column="delivery_req" 		jdbcType="VARCHAR"/>
+		<result property="userReportCount" 		column="user_report_count" 	jdbcType="VARCHAR"/>
+		<result property="loginStatus" 			column="login_status" 		jdbcType="CHAR"/>
+		<result property="dropOutReason" 		column="drop_out_reason" 	jdbcType="CHAR"/>
+	</resultMap>
+	
+	<resultMap id="userReportSelectMap" type="userReport" >
+		<result property="userReportNo"			column="user_report_no" 		jdbcType="NUMERIC"/>
+		<result property="reportUserNo"			column="report_user_no" 		jdbcType="NUMERIC"/>
+		<result property="targetUserNo"			column="target_user_no" 		jdbcType="NUMERIC"/>
+		<result property="userReportTitle"		column="user_report_title" 		jdbcType="VARCHAR"/>
+		<result property="userReportType"		column="user_report_type"		jdbcType="VARCHAR"/>
+		<result property="userReportContents"	column="user_report_contents"	jdbcType="VARCHAR"/>
+		<result property="confirmationStatus"	column="confirmation_status" 	jdbcType="CHAR"/>
+		<result property="postNo"				column="post_no" 				jdbcType="NUMERIC"/>
+		<result property="replyNo"				column="reply_no" 				jdbcType="NUMERIC"/>
+		<result property="nickname"				column="nickname" 				jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="addUser"  parameterType="user" >
+	 	INSERT
+		INTO users( user_no, email, naver, kakao, password, user_name, nickname, phone,
+					birth_date,	gender,concern1, concern2, concern3, concern4, concern5 )
+		VALUES(seq_user_user_no.NEXTVAL, #{email}, #{naver:VARCHAR}, #{kakao:VARCHAR}, 
+			   #{password}, #{userName}, #{nickname}, #{phone}, #{birthDate}, #{gender},
+			   #{concern1:VARCHAR}, #{concern2:VARCHAR}, #{concern3:VARCHAR}, #{concern4:VARCHAR}, #{concern5:VARCHAR})
+	</insert>
+	
+	
+	<!-- SQL : SELECT ONE -->
+	<select		id="checkDuplication"  parameterType="map"  resultType="int">
+		SELECT COUNT(*) FROM users 
+		<where>
+			<if test='condition == "email"'>
+		 		email = #{email}
+		 	</if>
+		 	<if test='condition == "nickname"'>
+		 		nickname = #{nickname}
+		 	</if>
+		 	<if test='condition == "phone"'>
+		 		phone = #{phone}
+		 	</if>
+		</where>
+	</select>
+	
+	
+	<!-- SQL : UPDATE -->
+	<update id="getPassword" parameterType="Map">
+		UPDATE users
+		SET password = #{password} 
+		WHERE user_name = #{userName} ADN email = #{email}
+	</update>
+	
+	
+	<!-- SQL : SELECT ONE --> 
+	<select 	id="getUser"  parameterType="map"  resultMap="userSelectMap" >
+	 	SELECT
+		user_no, email, naver, kakao, password, user_name, nickname, phone, birth_date,	gender, profile_img, sub_date, 
+		badge, concern1, concern2, concern3, concern4, concern5, user_status, easypay_card_no, easypay_card_valid,
+		easypay_card_pwd, easypay_pwd, addr, post_no, recip_name, recip_phone, delivery_req, login_status
+		FROM users
+		<where>
+			<if test='condition == "userNo"'>
+				user_no = #{userNo}
+			</if>
+			<if test='condition == "email"'>
+				email = #{email}
+			</if>
+			<if test='condition == "phone"'>
+				phone = #{phone}
+			</if>
+			<if test='condition == "emailPassword"'>
+				email = #{email} AND password = #{password}
+			</if>
+			<if test='condition == "kakao"'>
+				kakao = #{kakao}
+			</if>
+			
+		</where>
+	</select>
+	
+	<!-- SQL : UPDATE -->
+	<update		id="updateKakao"  parameterType="map" >
+	   	UPDATE users
+	   	<set>
+	   		kakao  = #{kakao}
+	   	</set>
+	   	WHERE user_no = #{userNo}
+	</update>
+	
+	
+	<!-- SQL : UPDATE -->
+	<update		id="updateUser"  parameterType="user" >
+	   	UPDATE users
+	   	<set>
+	   		profile_img  = #{profileImg:VARCHAR} ,
+	   		nickname	 = #{nickname:VARCHAR} ,
+	   		phone		 = #{phone:VARCHAR} ,
+	   		birth_date	 = #{birthDate:VARCHAR} ,
+	   		password	 = #{password:VARCHAR} ,
+	   		gender 		 = #{gender:VARCHAR} ,
+			concern1	 = #{concern1:VARCHAR} ,
+			concern2	 = #{concern2:VARCHAR} ,
+			concern3	 = #{concern3:VARCHAR} ,
+			concern4	 = #{concern4:VARCHAR} ,
+			concern5	 = #{concern5:VARCHAR} ,
+			login_status = #{loginStatus:VARCHAR}
+			<if test="badge != null">
+			,badge = #{badge}
+			</if>
+	   	</set>
+	   	WHERE user_no = #{userNo}
+	</update>
+	
+	
+	<!-- SQL : UPDATE -->
+	<update id="deleteUser"  parameterType="user">
+		 UPDATE users
+		 <set>
+		 	email	  			= null ,
+		 	naver	  			= null ,
+		 	kakao	  			= null ,
+		 	password  			= null ,
+		 	user_name			= null ,
+		 	phone				= null ,
+		 	profile_img			= null ,
+		 	easypay_card_no		= null ,
+		 	easypay_card_valid	= null ,
+			easypay_card_pwd	= null ,
+			easypay_pwd			= null ,
+			addr				= null ,
+			post_no				= null ,
+			recip_name			= null ,
+			recip_phone			= null ,
+			delivery_req		= null ,
+			login_status		= 'N',
+			drop_out_reason		= #{dropOutReason}
+		 </set>
+		 WHERE user_no = #{userNo}
+	</update>
+	
+	
+	<!-- SQL : SELECT LIST -->
+	<select  id="getUserList"  parameterType="search"	resultMap="userSelectMap">
+		SELECT user_no, email, nickname, sub_date, user_report_count, user_status 
+		FROM (SELECT inner_tab.user_no, inner_tab.email, inner_tab.nickname, inner_tab.sub_date,
+                     inner_tab.user_report_count, inner_tab.user_status, ROWNUM AS row_seq
+     		  FROM (SELECT u.user_no, u.email, u.nickname, u.sub_date, ur.user_report_count, u.user_status
+          			FROM users u, (SELECT target_user_no, COUNT(target_user_no) AS user_report_count
+                         		   FROM user_report
+								   GROUP BY target_user_no) ur
+          			WHERE u.user_no = ur.target_user_no(+)
+							<if test='searchCondition == "0" and searchKeyword != null'>
+								AND user_no LIKE '%'||#{searchKeyword}||'%'
+							</if>
+							<if test='searchCondition == "1" and searchKeyword != null'>
+								AND email LIKE '%'||#{searchKeyword}||'%'
+							</if>
+							<if test='searchCondition == "2" and searchKeyword != null'>
+								AND nickname LIKE '%'||#{searchKeyword}||'%'
+							</if>
+							<if test='searchCondition == "3" and searchKeyword != null'>
+								AND user_report_count = #{searchKeyword}
+							</if>
+							<if test='searchCondition == "4" and searchKeyword != null'>
+								AND user_status = #{searchKeyword}
+							</if>
+          			ORDER BY user_no) inner_tab
+    		 WHERE ROWNUM &lt;= #{endRowNum} )
+		WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum}
+	</select>
+	<!-- WHERE ROWNUM &lt;= #{endRowNum} 은 WHERE ROWNUM <= #{endRowNum} 과 같은 의미이며, < 는 keyword 로 &lt; 를 사용 -->
+	<!-- <![CDATA[  ~~~  ]]> 를 이용하여 아래와 같이 사용할 수 있음 (CDATA : Character Data이며, Java 에서 \n 같은 특수문자 처리)  
+	     ex) WHERE ROWNUM <![CDATA[ <=]]> #{endRowNum} ) -->
+	 
+	
+	<!-- SQL : SELECT ROW Count -->	 
+	<select  id="getTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*) 
+		FROM (SELECT u.user_no, u.email, u.nickname, u.sub_date, ur.user_report_count, u.user_status
+              FROM users u, (SELECT target_user_no, COUNT(target_user_no) AS user_report_count
+              				 FROM user_report
+							 GROUP BY target_user_no) ur
+			  WHERE u.user_no = ur.target_user_no(+)
+							<if test='searchCondition == "0" and searchKeyword != null'>
+								AND user_no LIKE '%'||#{searchKeyword}||'%'
+							</if>
+							<if test='searchCondition == "1" and searchKeyword != null'>
+								AND email LIKE '%'||#{searchKeyword}||'%'
+							</if>
+							<if test='searchCondition == "2" and searchKeyword != null'>
+								AND nickname LIKE '%'||#{searchKeyword}||'%'
+							</if>
+							<if test='searchCondition == "3" and searchKeyword != null'>
+								AND user_report_count = #{searchKeyword}
+							</if>
+							<if test='searchCondition == "4" and searchKeyword != null'>
+								AND user_status = #{searchKeyword}
+							</if>
+				ORDER BY u.user_no) countTable
+	 </select>
+	 
+	 
+	 <!-- SQL : SELECT LIST -->
+	 <!-- <select id="getUserReportHistory"  parameterType="map"	resultMap="userReportSelectMap">
+	 	SELECT user_report_no, user_report_type, user_report_title, user_report_contents, post_no,
+	 		   reply_no, nickname, confirmation_status, target_user_no, report_user_no
+	 	FROM (SELECT u.user_no, ur.user_report_no, ur.user_report_type, ur.user_report_title, ur.user_report_contents,
+	 				 ur.post_no, ur.reply_no, u.nickname, ur.confirmation_status, target_user_no, report_user_no, ROWNUM AS row_seq
+	 		  FROM users u, user_report ur
+	 		  WHERE u.user_no = #{userNo} AND
+	 		  		u.user_no = ur.target_user_no AND	
+	 		  		ROWNUM &lt;= #{search.endRowNum} 
+	 		  ORDER BY user_report_no)
+	 	WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum}
+	 </select> -->
+	 
+	 <select id="getUserReportHistory"  parameterType="map"	resultMap="userReportSelectMap">
+	 	SELECT user_report_no, user_report_type, user_report_title, user_report_contents, post_no,
+	 		   reply_no, nickname, confirmation_status, target_user_no, report_user_no, ROWNUM 
+	 	FROM user_report
+	 	WHERE target_user_no = #{userNo} AND
+	 		  ROWNUM &lt;= #{search.endRowNum} AND
+	 		  ROWNUM BETWEEN #{search.startRowNum} AND #{search.endRowNum} 
+	 	ORDER BY user_report_no DESC
+	 </select>
+	 
+	 
+	 <!-- SQL : UPDATE -->
+	<update id="updateUserStatus"  parameterType="map">
+		 UPDATE users
+		 <set>
+		 	<if test='status == "Y"'>
+		 		user_status = 'Y'
+		 	</if>
+		 	<if test='status == "N"'>
+		 		user_status = 'N'
+		 	</if>
+		 </set>
+		 WHERE user_no = #{userNo}
+	</update>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert id="addReportUser"  parameterType="userReport">
+		INSERT
+		INTO user_report (user_report_no, report_user_no, target_user_no, user_report_title,
+						  user_report_type, user_report_contents, post_no, reply_no, nickname)
+		VALUES (seq_user_report_user_report_no.NEXTVAL, #{reportUserNo}, #{targetUserNo}, #{userReportTitle},
+				#{userReportType}, #{userReportContents}, #{postNo:VARCHAR}, #{replyNo:VARCHAR}, #{nickname:VARCHAR})
+	</insert>
+	
+	
+	<!-- SQL : UPDATE -->
+	<!-- <update id="updateProfileImg" parameterType="map">
+		UPDATE users
+		SET profileImg = #{profileImg}  
+		WHERE user_no = #{userNo}
+	</update>  -->
+	 
+	 
+	<!-- SQL : UPDATE -->
+	<update id="updateConfirmationStatus"  parameterType="map">
+		 UPDATE user_report
+		 <set>
+		 	<if test='status == "Y"'>
+		 		confirmation_status = 'Y'
+		 	</if>
+		 	<if test='status == "N"'>
+		 		confirmation_status = 'N'
+		 	</if>
+		 </set>
+		 WHERE user_report_no = #{userReportNo}
+	</update>
+	 
+</mapper>
